@@ -1,4 +1,6 @@
+const { query, response } = require("express");
 const inquirer = require("inquirer");
+const { connection } = require("mongoose");
 //import and require mysql2
 const mysql = require("mysql2");
 
@@ -42,31 +44,60 @@ const promptUser = () => {
       },
     ])
     .then((answers) => {
-      let selectedAnswers = answers.selection;
+      let selectedAnswer = answers.selection; // Changed variable name to singular form 'selectedAnswer'
+  
+      switch (selectedAnswer) {
+          case "View all departments":
+              db.query("SELECT * FROM department", function (err, departments) {
+                  if (err) console.error(err);
+                  console.table(departments);
+              });
+              break;
+  
+          case "View all roles":
+              db.query("SELECT * FROM role", function (err, roles) {
+                  if (err) console.error(err);
+                  console.table(roles);
+              });
+              break;
+  
+          case "View all employees":
+              db.query("SELECT * FROM employee", function (err, employees) {
+                  if (err) console.error(err);
+                  console.table(employees);
+              });
+              break;
 
-      switch (selectedAnswers) {
-        // id, name
-        case "View all departments":
-          db.query("SELECT * FROM department", function (err, department) {
-            if (err) console.error(err);
-            console.table(department); // needs to be part of array?
-          });
-          break;
-        // role id, job title, department value, salary value
-        case "View all roles":
-          returnRowsFromDB = db.query(`
-                      SELECT
-                          role.id,
-                          role.title,
-                          role.salary,
-                          department.name AS department
-                      FROM role
-                      JOIN department ON role.department_id = department.id
-                      `);
-          console.log(returnRowsFromDB[0]);
+              case "Add a department":
+                db.query("SELECT * FROM department", function (err, department) {
+                  const addNewDepartment = () => {
+                    const insertDepartment  = `INSERT INTO department (name) VALUES (?)`;
+                    connection.query(query, [response.name], (err, res) => {
+                      if (err) throw err;
+                      console.log(`Successfully added department ${response.name} department at  id ${response.id}}`);
+                    })
+                  }
+                })
+  
+          default:
+              console.log("Invalid selection");
+      }
+  });
+  
+
+      
+          console.table(returnRowsFromDB[0]);
           break;
       }
     });
+    
+    case "View all employees"
+    returnRowsFromDB = db.query(`SELECT employee.id,
+     employee.first_name,
+      employee.last_name,
+       role.id, manager.id`)
+       console.log(returnRowsFromDB[0]);
+       break;
 };
 
 const viewAllEmployees = () =>
@@ -149,14 +180,13 @@ const addRole = () => {
               console.error("Department not found.");
               return;
             }
-            const department_id = result[0].id;
             // Insert new role
             db.query(
               `INSERT INTO role(title, salary, department_id) VALUES (?, ?, ?)`,
               [data.title, data.salary, department_id],
               (err, result) => {
                 if (err) {
-                  console.log("Error inserting new role:", err);
+                  console.error("Error inserting new role:", err);
                   return;
                 }
 
@@ -174,3 +204,5 @@ const addRole = () => {
     // Now you can proceed with further processing or return the departmentArray
   });
 };
+
+promptUser();
