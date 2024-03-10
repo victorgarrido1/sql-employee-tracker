@@ -112,8 +112,65 @@ const addRole = () => {
       return;
     }
     for (let i = 0; i < results.length; i++) {
-      departmentArray.push(results[i].name); // Populate department names array
+      departmentArray.push(results[i].name);
+      // Populate department names array
     }
+    return inquirer
+      .prompt([
+        {
+          type: "input",
+          message: "What is the name of the new role?",
+          name: "title",
+        },
+        {
+          type: "input",
+          message: 'What is the salary of the new role?"',
+          name: "salary",
+        },
+        {
+          type: "list",
+          message: 'What department is the role under?"',
+          name: "department",
+          choices: departmentArray,
+        },
+      ])
+      .then((data) => {
+        // Get the department id
+        db.query(
+          `SELECT id FROM department WHERE department.name = ?`,
+          data.department,
+          (err, result) => {
+            if (err) {
+              console.error("Error getting department id:", err);
+              return;
+            }
+
+            if (result.length === 0) {
+              console.error("Department not found.");
+              return;
+            }
+            const department_id = result[0].id;
+            // Insert new role
+            db.query(
+              `INSERT INTO role(title, salary, department_id) VALUES (?, ?, ?)`,
+              [data.title, data.salary, department_id],
+              (err, result) => {
+                if (err) {
+                  console.log("Error inserting new role:", err);
+                  return;
+                }
+
+                console.log("\nNew role added.");
+                viewAllRoles(); // Assuming viewAllRoles is a function that displays all roles
+              }
+            );
+          }
+        );
+      })
+      .catch((err) => {
+        console.error("Error:", err);
+      });
+
     // Now you can proceed with further processing or return the departmentArray
   });
 };
