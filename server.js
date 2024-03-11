@@ -46,17 +46,29 @@ const promptUser = () => {
           });
           break;
 
+          case "Add a department"
+          addDepartment();
+          break;
+
+          
           // please continue working here, to be adding department logic
         case "Add a department":
-          db.query("SELECT * FROM department", function (err, department) {
-            const addNewDepartment = () => {
-              const insertDepartment = `INSERT INTO department (name) VALUES (?)`;
-              connection.query(query, [response.name], (err, res) => {
-                if (err) throw err;
-                console.log(`Successfully added department ${response.name} department at  id ${response.id}}`);
-              });
-            };
-          });
+          const addDepartment = () => {
+            return inquirer.prompt([
+              {
+                type: 'input',
+                message: 'What is the name of the new department?',
+                name: 'name'
+              }
+            ])
+            .then((data) => {
+              db.query(`INSERT INTO department(name) VALUES (?, ?)`, data.name, (err, results) => {
+                console.log("\nNew department was added!");
+                viewAllDepartments();
+              })
+            })
+          }
+          promptUser();
           break;
 
 
