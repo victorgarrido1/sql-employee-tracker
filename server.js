@@ -143,22 +143,19 @@ function addRole() {
           type: "list",
           name: "department",
           message: "Enter the department for the new role:",
-          choices: res.map((department) => department.name),
+          choices: res.map((department) => department.id),
         },
       ])
       .then((answers) => {
+        console.log(answers)
         //TODO: Needs to be fixed. Does not like data to be passed
-        const query =
-        `INSERT INTO
-        role (title, salary, department_id)
-      VALUES
-        ('?', '?', '?')`;
+        const query = `INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)`;
         db.query(
           query,
           [
             answers.title,
-            answers.salary,
-            answers.department_id,
+            Number(answers.salary),
+            answers.department,
             ],
           (err) => {
             if (err) throw err;
@@ -187,6 +184,11 @@ function addEmployee() {
     }));
   });
 
+  const managers = res.map(({ id, name }) => ({
+    name,
+    value: id,
+}));
+
   //retrieving list of employees from the database to use for as a manager
   db.query('SELECT id FROM employee')
 
@@ -213,6 +215,7 @@ function addEmployee() {
       choices: [
        { name: "None", value: null},
        ...managers,
+
       ]
     },
   ])

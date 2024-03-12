@@ -1,5 +1,8 @@
 
+
+DROP TABLE IF EXISTS role
 -- Insert department seeds
+
 INSERT INTO department (id, name) VALUES
 (1, 'Engineering'),
 (2, 'Finance'),
@@ -8,8 +11,8 @@ INSERT INTO department (id, name) VALUES
 
 -- Create Role table
 CREATE TABLE role (
-    id INT PRIMARY KEY,
-    title VARCHAR(50),
+    id SERIAL PRIMARY KEY PRIMARY KEY AUTO INCREMENT,
+    -- title VARCHAR(50),
     salary DECIMAL(10, 2),
     department_id INT,
     FOREIGN KEY (department_id) REFERENCES department(id)
@@ -48,3 +51,5 @@ INSERT INTO employee (id, first_name, last_name, role_id, manager_id) VALUES
 (7, 'Eddie', 'Brock', 7, 3),
 (8, 'Wade', 'Wilson', 8, 4),
 (9, 'Christopher', 'Nolan', 1, 2);
+
+
