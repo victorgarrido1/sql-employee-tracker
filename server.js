@@ -147,18 +147,20 @@ function addRole() {
         },
       ])
       .then((answers) => {
-        const department = res.find((dept) => dept.name === answers.department);
         //TODO: Needs to be fixed. Does not like data to be passed
         const query =
-          "INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)";
+        `INSERT INTO
+        role (title, salary, department_id)
+      VALUES
+        ('?', '?', '?')`;
         db.query(
           query,
-          {
-            title: answers.title,
-            salary: answers.salary,
-            department_id: answers.department_id,
-          },
-          (err, res) => {
+          [
+            answers.title,
+            answers.salary,
+            answers.department_id,
+            ],
+          (err) => {
             if (err) throw err;
             console.log(
               `Added role ${answers.title} with salary ${answers.salary} to the ${answers.department} department in the database.`
@@ -185,6 +187,9 @@ function addEmployee() {
     }));
   });
 
+  //retrieving list of employees from the database to use for as a manager
+  db.query('SELECT id FROM employee')
+
   inquirer.prompt([
     {
       type: "input",
@@ -195,6 +200,11 @@ function addEmployee() {
       type: "input",
       name: "lastName",
       message: "Enter the employee's last name: ",
+    },
+    {
+      type: "input",
+      name: "roleId",
+      message: "Select the employees role: ",
     },
     {
       type: "list",
