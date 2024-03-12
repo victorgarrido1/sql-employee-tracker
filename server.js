@@ -43,15 +43,20 @@ function start() {
         break;
       // Add more cases as needed
       case "View all roles":
+        viewAllRoles();
         // Add logic for viewing all roles
         break;
       case "View all employees":
+        viewAllEmployees();
         // Add logic for viewing all employees
         break;
       case "Add a department":
+      addDepartment();
         // Add logic for adding a department
         break;
       case "Add a role":
+        addRole();
+
         // Add logic for adding a role
         break;
       case "Add an employee":
@@ -72,7 +77,55 @@ function viewAllDepartments() {
     //app restart
     start();
   })
-}
+};
+
+//function to viewAllRoles
+function viewAllRoles() {
+  const query = 'SELECT * FROM role';
+  db.query(query, (err, res) => {
+    if (err) throw err;
+    console.table(res);
+    //app restart
+    start();
+  })
+};
+
+//function that viewAllEmployees
+function viewAllEmployees() {
+  const query = 'SELECT id, first_name, last_name, role_id, manager_id FROM employee';
+  db.query(query, (err, res) => {
+    if (err) throw err;
+    console.table(res);
+    //application restart
+    start();
+  })
+};
+
+
+//function to addDepartment
+function addDepartment() {
+  inquirer
+  .prompt({
+    type: "input",
+    name: "name",
+    message: "What is the name of the new department?",
+  })
+  .then((answers) => {
+    console.log(answers.name);
+    const query = `INSERT INTO department (name) VALUES ("${answers.name}")`;
+    db.query(query, (err) => {
+      if (err) throw err;
+      console.log(`Added department ${answers.name} to the database`);
+      //application reset
+      start();
+      console.log(answers.name);
+    });
+  });
+};
+
+//function to addRole();
+
+
 
 
   
