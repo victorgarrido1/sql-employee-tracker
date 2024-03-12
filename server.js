@@ -11,124 +11,213 @@ const db = mysql.createConnection({
   database: "staff_db",
 });
 
-
 db.connect((err) => {
   if (err) throw err;
-  console.log("Connnected to the database");
+  console.log("Connected to the database");
   start();
-})
+});
 
 function start() {
   inquirer
-  .prompt([
-    {
-      type: "list",
-      message: "Which would you like to do today?",
-      name: "selection",
-      choices: [
-        "View all departments",
-        "View all roles",
-        "View all employees",
-        "Add a department",
-        "Add a role",
-        "Add an employee",
-        "Update an employee role",
-      ],
-    },
-  ])
-  .then((answers) => {
-    switch (answers.selection) {
-      case "View all departments":
-        viewAllDepartments();
-        break;
-      // Add more cases as needed
-      case "View all roles":
-        viewAllRoles();
-        // Add logic for viewing all roles
-        break;
-      case "View all employees":
-        viewAllEmployees();
-        // Add logic for viewing all employees
-        break;
-      case "Add a department":
-      addDepartment();
-        // Add logic for adding a department
-        break;
-      case "Add a role":
-        addRole();
-
-        // Add logic for adding a role
-        break;
-      case "Add an employee":
-        // Add logic for adding an employee
-        break;
-      case "Update an employee role":
-        // Add logic for updating an employee role
-        break;
-    }
-  });
+    .prompt([
+      {
+        type: "list",
+        message: "Which would you like to do today?",
+        name: "selection",
+        choices: [
+          "View all departments",
+          "View all roles",
+          "View all employees",
+          "Add a department",
+          "Add a role",
+          "Add an employee",
+          "Update an employee role",
+        ],
+      },
+    ])
+    .then((answers) => {
+      switch (answers.selection) {
+        case "View all departments":
+          viewAllDepartments();
+          break;
+        // Add more cases as needed
+        case "View all roles":
+          viewAllRoles();
+          // Add logic for viewing all roles
+          break;
+        case "View all employees":
+          viewAllEmployees();
+          // Add logic for viewing all employees
+          break;
+        case "Add a department":
+          addDepartment();
+          // Add logic for adding a department
+          break;
+        case "Add a role":
+          addRole();
+          // Add logic for adding a role
+          break;
+        case "Add an employee":
+          // Add logic for adding an employee
+          addEmployee();
+          break;
+        case "Update an employee role":
+          // Add logic for updating an employee role
+          break;
+      }
+    });
 }
 //this is where we viewAllDepartments
 function viewAllDepartments() {
-  const query = 'SELECT * FROM department';
+  const query = "SELECT * FROM department";
   db.query(query, (err, res) => {
     if (err) throw err;
     console.table(res);
     //app restart
     start();
-  })
-};
+  });
+}
 
 //function to viewAllRoles
 function viewAllRoles() {
-  const query = 'SELECT * FROM role';
+  const query = "SELECT * FROM role";
   db.query(query, (err, res) => {
     if (err) throw err;
     console.table(res);
     //app restart
     start();
-  })
-};
+  });
+}
 
 //function that viewAllEmployees
 function viewAllEmployees() {
-  const query = 'SELECT id, first_name, last_name, role_id, manager_id FROM employee';
+  const query =
+    "SELECT id, first_name, last_name, role_id, manager_id FROM employee";
   db.query(query, (err, res) => {
     if (err) throw err;
     console.table(res);
     //application restart
     start();
-  })
-};
-
+  });
+}
 
 //function to addDepartment
 function addDepartment() {
   inquirer
-  .prompt({
-    type: "input",
-    name: "name",
-    message: "What is the name of the new department?",
-  })
-  .then((answers) => {
-    console.log(answers.name);
-    const query = `INSERT INTO department (name) VALUES ("${answers.name}")`;
-    db.query(query, (err) => {
-      if (err) throw err;
-      console.log(`Added department ${answers.name} to the database`);
-      //application reset
-      start();
+    .prompt({
+      type: "input",
+      name: "name",
+      message: "What is the name of the new department?",
+    })
+    .then((answers) => {
       console.log(answers.name);
+      const query = `INSERT INTO department (name) VALUES ("${answers.name}")`;
+      db.query(query, (err) => {
+        if (err) throw err;
+        console.log(`Added department ${answers.name} to the database`);
+        //application reset
+        start();
+        console.log(answers.name);
+      });
     });
-  });
-};
+}
 
 //function to addRole();
+function addRole() {
+  const query = "SELECT * FROM department";
+  db.query(query, (err, res) => {
+    if (err) throw err;
+    inquirer
+      .prompt([
+        {
+          type: "input",
+          name: "title",
+          message: "Enter the title of the new role:",
+        },
+        {
+          type: "input",
+          name: "salary",
+          message: "Enter the salary of the role:",
+        },
+        {
+          type: "list",
+          name: "department",
+          message: "Enter the department for the new role:",
+          choices: res.map((department) => department.name),
+        },
+      ])
+      .then((answers) => {
+        const department = res.find((dept) => dept.name === answers.department);
+        //TODO: Needs to be fixed. Does not like data to be passed
+        const query =
+          "INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)";
+        db.query(
+          query,
+          {
+            title: answers.title,
+            salary: answers.salary,
+            department_id: answers.department_id,
+          },
+          (err, res) => {
+            if (err) throw err;
+            console.log(
+              `Added role ${answers.title} with salary ${answers.salary} to the ${answers.department} department in the database.`
+            );
+            start();
+          }
+        );
+      });
+  });
+}
 
+//function to addEmployee()
+function addEmployee() {
+  //first get the list of the employees
+  db.query("SELECT id FROM employee", (err, res) => {
+    if (err) {
+      console.log(err);
+      return;
+    }
 
+    const roles = res.map(({ id, title }) => ({
+      name: title,
+      value: id,
+    }));
+  });
 
+  inquirer.prompt([
+    {
+      type: "input",
+      name: "name",
+      message: "Enter the employee's first name: ",
+    },
+    {
+      type: "input",
+      name: "lastName",
+      message: "Enter the employee's last name: ",
+    },
+    {
+      type: "list",
+      name: "managerId",
+      message: "Select the employee manager: ",
+      choices: [
+       { name: "None", value: null},
+       ...managers,
+      ]
+    },
+  ])
+  .then((answers) => {
+    //apply the answers into the DB
 
-  
+  })
+}
+
+// inquirer
+// .prompt({
+//   type: "input",
+//   name: "name"
+// })
+
 //     switch (selectedAnswer) {
 //       case "View all departments":
 //         db.query("SELECT * FROM department", function (err, answers) {
@@ -136,14 +225,14 @@ function addDepartment() {
 //           console.table(answers);
 //         });
 //         break;
-        
+
 //         case "View all roles":
 //           db.query("SELECT * FROM role", function (err, answers) {
 //             if (err) console.error(err);
 //             console.table(answers);
 //           });
 //           break;
-          
+
 //           // please continue working here, to be adding department logic
 //           function viewAllDepartments() => {
 //             db.query("SELECT * FROM department", function (err, answers) {
@@ -151,8 +240,7 @@ function addDepartment() {
 //               console.table(answers);
 //             });
 //             }
-              
-            
+
 //             case "Add a department":
 //               {
 //                 return inquirer
@@ -185,20 +273,6 @@ function addDepartment() {
 //                     console.table(answers);
 //                   });
 //                   break;
-                  
-                  
-                  
-
-
-
-
-
-
-
-
-
-
-
 
 //                     promptUser();
 //                     break;
