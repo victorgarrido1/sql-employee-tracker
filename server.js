@@ -147,16 +147,12 @@ function addRole() {
         },
       ])
       .then((answers) => {
-        console.log(answers)
+        console.log(answers);
         //TODO: Needs to be fixed. Does not like data to be passed
         const query = `INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)`;
         db.query(
           query,
-          [
-            answers.title,
-            Number(answers.salary),
-            answers.department,
-            ],
+          [answers.title, Number(answers.salary), answers.department],
           (err) => {
             if (err) throw err;
             console.log(
@@ -171,76 +167,139 @@ function addRole() {
 
 function addEmployee() {
   // First get the list of the employees
-  db.query("SELECT id, first_name, last_name, role_id, manager_id FROM employee", (err, res) => {
-    if (err) {
-      console.log(err);
-      return;
-    }
-
-    const roles = res.map(({ id, title }) => ({
-      name: title,
-      value: id,
-    }));
-
-    // Retrieving list of employees from the database to use as a manager
-    db.query('SELECT id, CONCAT(first_name, " ", last_name) AS name FROM employee', (err, res) => {
+  db.query(
+    "SELECT id, first_name, last_name, role_id, manager_id FROM employee",
+    (err, res) => {
       if (err) {
         console.log(err);
         return;
       }
 
-      const manager = res.map(({ id, name }) => ({
-        name,
+      const roles = res.map(({ id, title }) => ({
+        name: title,
         value: id,
       }));
 
-      // Prompt the user for input
-      inquirer.prompt([
-        {
-          type: "input",
-          name: "firstName",
-          message: "Enter the employee's first name: ",
-        },
-        {
-          type: "input",
-          name: "lastName",
-          message: "Enter the employee's last name: ",
-        },
-        {
-          type: "list",
-          name: "roleId",
-          message: "Select the employee's role: ",
-          choices: roles,
-        },
-        {
-          type: "list",
-          name: "managerId",
-          message: "Select the employee's manager: ",
-          choices: [
-            { name: "None", value: null },
-            ...manager,
-          ]
-        },
-      ])
-      .then((answers) => {
-        // Apply the answers into the DB
-        const sql = "INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)";
-        const values = [
-          answers.firstName,
-          answers.lastName,
-          answers.roleId,
-          answers.managerId,
-        ];
-        db.query(sql, values, (err) => {
+      // Retrieving list of employees from the database to use as a manager
+      db.query(
+        'SELECT id, CONCAT(first_name, " ", last_name) AS name FROM employee',
+        (err, res) => {
           if (err) {
             console.log(err);
+            return;
           }
+
+          const manager = res.map(({ id, name }) => ({
+            name,
+            value: id,
+          }));
+
+          // Prompt the user for input
+          inquirer
+            .prompt([
+              {
+                type: "input",
+                name: "firstName",
+                message: "Enter the employee's first name: ",
+              },
+              {
+                type: "input",
+                name: "lastName",
+                message: "Enter the employee's last name: ",
+              },
+              {
+                type: "list",
+                name: "roleId",
+                message: "Select the employee's role: ",
+                choices: roles,
+              },
+              {
+                type: "list",
+                name: "managerId",
+                message: "Select the employee's manager: ",
+                choices: [{ name: "None", value: null }, ...manager],
+              },
+            ])
+            .then((answers) => {
+              // Apply the answers into the DB
+              const sql =
+                "INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)";
+
+              const values = [
+                answers.firstName,
+                answers.lastName,
+                answers.roleId,
+                answers.managerId,
+              ];
+              db.query(sql, values, (err) => {
+                if (err) {
+                  console.log(err);
+                }
+                console.log("Employee added successfully!");
+                start();
+              });
+            });
+        }
+      );
+    }
+  );
+}
+
+
+//last part to work on 
+function updateEmployeeRole() {
+  const queryEmployees =
+    "SELECT employee.id, employee.first_name, employee.last_name FROM employee LEFT JOIN role ON employee.role_id = role.id";
+  const queryRoles = "SELECT * FROM roles";
+
+  db.query(queryEmployees, (err, resEmployee) => {
+    if (err) throw err;
+
+    db.query(queryRoles, (err, resRoles) => {
+      if (err) throw err;
+
+      inquirer
+        .prompt([
+          {
+            type: "list",
+            name: "employee",
+            message: "Select the employee to update:",
+            choices: resEmployee.map(
+              (employee) => `${employee.first_name} ${employee.last_name}`
+            ),
+          },
+          {
+            type: "list",
+            name: "role",
+            message: "Select the new role:",
+            choices: resRoles.map((role) => role.title),
+          },
+        ])
+        .then((answers) => {
+          const selectedEmployee = resEmployee.find(
+            (employee) =>
+              `${employee.first_name} ${employee.last_name}` ===
+              answers.employee
+          );
+          const selectedRole = resRoles.find(
+            (role) => role.title === answers.role
+          );
+
+          const role = resRole.find((role) => role.title === answers.role);
+
+          const query = "UPDATE employee SET id = ? WHERE id = ?";
+          db.query(query, [role.id, employee.id], (err, res) => {
+            if (err) throw err;
+            console.log(
+              `Updated employee ${employee.first_name} ${employee.last_name}'s  role to ${role.title} in the database!`
+            );
+          });
+          //app restart
+          start();
         });
-      });
     });
   });
 }
-
 
 //         case "View all roles":
 //           db.query("SELECT * FROM role", function (err, answers) {
@@ -256,45 +315,3 @@ function addEmployee() {
 //               console.table(answers);
 //             });
 //             }
-
-//             case "Add a department":
-//               {
-//                 return inquirer
-//                 .prompt([
-//                   {
-//                     type: "input",
-//                     message: "What is the name of the new department?",
-//                     name: "name",
-//                   },
-//                 ])
-//                 .then((data) => {
-//                   db.query(
-//                     `INSERT INTO department(name) VALUES (?)`,
-//                     data.name,
-//                     (err, results) => {
-//                       console.log("\nNew department was added!");
-//                       function viewAllDepartments() {
-//                         db.query("SELECT * FROM department", function (err, answers) {
-//                           if (err) console.error(err);
-//                           console.table(answers);
-//                         });
-//                       }
-//                     }
-//                     );
-//                   });
-//                 }
-//                 case "View all departments":
-//                   db.query("SELECT * FROM department", function (err, answers) {
-//                     if (err) console.error(err);
-//                     console.table(answers);
-//                   });
-//                   break;
-
-//                     promptUser();
-//                     break;
-
-//                   case "View all employees":
-//                     db.query(
-//                       `SELECT employee.id,
-//                         employee.first_name,
-
