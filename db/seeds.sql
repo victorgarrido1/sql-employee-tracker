@@ -1,6 +1,5 @@
 
-
-DROP TABLE IF EXISTS role
+CREATE DATABASE IF NOT EXISTS staff_db;
 -- Insert department seeds
 
 INSERT INTO department (id, name) VALUES
@@ -10,13 +9,13 @@ INSERT INTO department (id, name) VALUES
 (4, 'Sales');
 
 -- Create Role table
-CREATE TABLE role (
-    id SERIAL PRIMARY KEY PRIMARY KEY AUTO INCREMENT,
-    -- title VARCHAR(50),
+CREATE TABLE IF NOT EXISTS role (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(50),
     salary DECIMAL(10, 2),
-    department_id INT,
-    FOREIGN KEY (department_id) REFERENCES department(id)
+    department_id INT
 );
+
 
 -- Insert role seeds
 INSERT INTO role (id, title, salary, department_id) VALUES
@@ -51,5 +50,6 @@ INSERT INTO employee (id, first_name, last_name, role_id, manager_id) VALUES
 (7, 'Eddie', 'Brock', 7, 3),
 (8, 'Wade', 'Wilson', 8, 4),
 (9, 'Christopher', 'Nolan', 1, 2);
+
 
 
