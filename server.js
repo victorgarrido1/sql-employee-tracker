@@ -62,6 +62,7 @@ function start() {
           addEmployee();
           break;
         case "Update an employee role":
+          updateEmployeeRole();
           // Add logic for updating an employee role
           break;
       }
@@ -250,7 +251,7 @@ function addEmployee() {
 function updateEmployeeRole() {
   const queryEmployees =
     "SELECT employee.id, employee.first_name, employee.last_name FROM employee LEFT JOIN role ON employee.role_id = role.id";
-  const queryRoles = "SELECT * FROM roles";
+  const queryRoles = "SELECT * FROM role";
 
   db.query(queryEmployees, (err, resEmployee) => {
     if (err) throw err;
@@ -266,7 +267,8 @@ function updateEmployeeRole() {
             message: "Select the employee to update:",
             choices: resEmployee.map(
               (employee) => `${employee.first_name} ${employee.last_name}`
-            ),
+
+            ), 
           },
           {
             type: "list",
@@ -276,7 +278,8 @@ function updateEmployeeRole() {
           },
         ])
         .then((answers) => {
-          const selectedEmployee = resEmployee.find(
+          console.log(answers);
+          const employee = resEmployee.find(
             (employee) =>
               `${employee.first_name} ${employee.last_name}` ===
               answers.employee
@@ -285,10 +288,12 @@ function updateEmployeeRole() {
             (role) => role.title === answers.role
           );
 
-          const role = resRole.find((role) => role.title === answers.role);
+          const role = resRoles.find((role) => role.title === answers.role);
+          
 
           const query = "UPDATE employee SET id = ? WHERE id = ?";
           db.query(query, [role.id, employee.id], (err, res) => {
+            console.log(err);
             if (err) throw err;
             console.log(
               `Updated employee ${employee.first_name} ${employee.last_name}'s  role to ${role.title} in the database!`
