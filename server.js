@@ -1,6 +1,5 @@
 const inquirer = require("inquirer");
 const mysql = require("mysql2");
-let stream = require("stream");
 
 require("dotenv").config();
 
@@ -291,12 +290,12 @@ function updateEmployeeRole() {
           const role = resRoles.find((role) => role.title === answers.role);
           
 
-          const query = "UPDATE employee SET id = ? WHERE id = ?";
+          const query = "UPDATE employee SET role_id = ? WHERE id = ?";
           db.query(query, [role.id, employee.id], (err, res) => {
             console.log(err);
             if (err) throw err;
             console.log(
-              `Updated employee ${employee.first_name} ${employee.last_name}'s  role to ${role.title} in the database!`
+              `Updated employee ${employee.first_name} ${employee.last_name}'s role to ${role.title} in the database!`
             );
           });
           //app restart
@@ -306,17 +305,3 @@ function updateEmployeeRole() {
   });
 }
 
-//         case "View all roles":
-//           db.query("SELECT * FROM role", function (err, answers) {
-//             if (err) console.error(err);
-//             console.table(answers);
-//           });
-//           break;
-
-//           // please continue working here, to be adding department logic
-//           function viewAllDepartments() => {
-//             db.query("SELECT * FROM department", function (err, answers) {
-//               if (err) console.error(err);
-//               console.table(answers);
-//             });
-//             }
