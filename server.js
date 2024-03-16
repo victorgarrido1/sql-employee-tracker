@@ -265,7 +265,7 @@ function updateEmployeeRole() {
             name: "employee",
             message: "Select the employee to update:",
             choices: resEmployee.map(
-              (employee) => `${employee.first_name} ${employee.last_name}`
+              (employee) => ({name: `${employee.first_name} ${employee.last_name}`,value: employee.id}),
 
             ), 
           },
@@ -273,7 +273,7 @@ function updateEmployeeRole() {
             type: "list",
             name: "role",
             message: "Select the new role:",
-            choices: resRoles.map((role) => role.title),
+            choices: resRoles.map((role) => ({name:role.title,value: role.id} )),
           },
         ])
         .then((answers) => {
@@ -291,15 +291,17 @@ function updateEmployeeRole() {
           
 
           const query = "UPDATE employee SET role_id = ? WHERE id = ?";
-          db.query(query, [role.id, employee.id], (err, res) => {
-            console.log(err);
-            if (err) throw err;
-            console.log(
-              `Updated employee ${employee.first_name} ${employee.last_name}'s role to ${role.title} in the database!`
-            );
+          db.query(query, [answers.role, answers.employee], (err, res) => {
+            if (err) {
+              console.log(err);
+              throw err;
+            }
+            console.log(`Updated employee's role in the database!`);
+            
+            // Since you're updating the database asynchronously, you should call `start()` inside the callback function
+            start();
           });
-          //app restart
-          start();
+          
         });
     });
   });
